@@ -1,0 +1,192 @@
+---
+title: "Mansoor_Final"
+author: "Mansoor Baba Shaik"
+date: "December 19, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+setwd("~/IS665/Finals/FinalExam")
+rm(list=ls())
+```
+
+##Answer-1
+```{r}
+babies = read.csv(file="data_babies.csv", header=T, sep=",", dec=".")
+summary(babies)
+
+paste("Total NAs in babies dataset:", sum(is.na(babies)))
+
+babiesWithoutNA = na.omit(babies)
+
+require(lattice)
+xyplot(bwt ~ gestation, data=babiesWithoutNA, pch=19)
+
+cor(babiesWithoutNA$bwt, babiesWithoutNA$gestation)
+
+m1 <- lm(bwt ~ gestation, data=babiesWithoutNA)
+summary(m1)
+
+plot(babiesWithoutNA$bwt ~ babiesWithoutNA$gestation, xlab="gestation", ylab="bwt")
+abline(m1, col="red")
+```
+The relationship between weight of the babies and gestation is positive and moderately strong.
+
+The linear function that describes the relationship between bwt(weight of babies) and gestation
+in the given babies dataset is $\hat{bwt}$ = -10.75414 + 0.46656 * gestation.
+
+It tells me that, everything else being constant, for each additonal increase in gestation, we would expect the bwt(birth weight of babies) to be increased by 0.46656.
+
+Here, the p-value Pr(>|t|) is 2e-16 which is low and there the results will be significant. Therefore, gestation is a good predictor of birth weight of babies.
+
+##Answer-2
+```{r}
+require(lattice)
+xyplot(bwt ~ smoke, data=babiesWithoutNA, pch=19)
+
+cor(babiesWithoutNA$bwt, babiesWithoutNA$smoke)
+
+m2 <- lm(bwt ~ smoke, data=babiesWithoutNA)
+summary(m2)
+
+plot(babiesWithoutNA$bwt ~ babiesWithoutNA$smoke, xlab="gestation", ylab="bwt")
+abline(m2, col="red")
+```
+
+The relationship between weight of the babies and smoke is slightly negative.
+
+The linear function that describes the relationship between bwt(weight of babies) and smoke
+in the given babies dataset is $\hat{bwt}$ = 123.0853 - 9.2661 * smoke, given smoke is 0(non-smoker) or 1(smoker)
+
+It tells me that, everything else being constant, if the mother is smoker(smoke = 1), we would expect the bwt(birth weight of babies) to be 113.8192. Otherwise, if the mother is non-smoker, we would expect the bwt(birth weight of babies) to be 123.0853.
+
+##Answer-3
+```{r}
+
+```
+
+##Answer-4
+```{r}
+
+pH = read.csv(file="smokyph.csv", header=T, sep=",", dec=".")
+
+t.test(pH$waterph, mu = 7, alternative = "two.sided", conf.level = 0.95)
+
+```
+Null Hypothesis: The average pH level of water is equal to 7 in the Great Smoky mountains.
+
+Alternative Hypothesis: The average pH level of water is not equal to 7 in the Great Smoky mountains.
+
+For this, we two-sided test since the average pH level of water above and below 7 has to be avoided according to the Null Hypothesis we have constructed.
+
+The p-value obtained from the two-sided t-test performed is 0.007452 which is less than our level of significance (0.05). 
+
+Hence, we reject our Null Hypothesis. Therefore, we accept alternative hypothesis that the average pH level of water is not equal to 7 in the Great Smoky mountains.
+
+##Answer-5
+```{r}
+require("class")
+churn = read.csv(file="churn.csv", header=T, sep=",", dec=".")
+
+churn <- churn[c(10, 13, 16, 19, 21)]
+
+churn[1:4] <- sapply(churn[1:4], function(x){
+  (x-min(x))/(max(x)-min(x))
+})
+
+head(churn)
+
+set.seed(1234)
+ind = sample(2, nrow(churn), replace=T, prob=c(.80, .20))
+
+churn.training <- churn[ind == 1, 1:4]
+churn.test <- churn[ind == 2, 1:4]
+
+churn.trainLabels <- churn[ind == 1, 5]
+churn.testLabels <- churn[ind == 2, 5]
+
+k_value = sqrt(nrow(churn.training))
+k_value = round(k_value, 0)
+k_value
+
+churn_pred <- knn(train = churn.training, test = churn.test, cl = churn.trainLabels, k = 52)
+
+results <- data.frame(churn_pred, churn.testLabels)
+table(results)
+
+for(i in 50:55){
+  print(paste('For K=', i, ' , table is below'))
+  churn_pred <- knn(train = churn.training, test = churn.test, cl = churn.trainLabels, k = i)
+  results <- data.frame(churn_pred, churn.testLabels)
+  print(table(results))
+}
+
+churn_pred_final <- knn(train = churn.training, test = churn.test, cl = churn.trainLabels, k = 52)
+results_final <- data.frame(churn_pred_final, churn.testLabels)
+print(table(results_final))
+  
+require(caret)
+require(e1071)
+
+confusionMatrix(table(results_final))
+
+```
+
+The accuracy of my knn model is 83.63% which says that the obtained predicted values for churn variable are 83.63% likely to be perfect prediction when the test variables(Day.Charge, Eve.Charge, Night.Charge, Intl.Charge) values are given.
+
+##Answer-6
+```{r}
+
+churn2 = read.csv(file="churn.csv", header=T, sep=",", dec=".")
+
+churn2 = churn2[c(9, 10, 13, 11, 21)]
+
+n.churn2 <- data.frame(sapply(churn2[1:4], function(x){
+  (x-min(x))/(max(x)-min(x))
+}))
+
+require(plyr)
+n.churn2 = mutate(n.churn2, Churn. = as.factor(churn2$Churn.))
+head(n.churn2)
+
+set.seed(1234)
+ind = sample(2, nrow(churn2), replace=T, prob=c(.67, .33))
+
+churn2.training <- n.churn2[ind == 1, ]
+churn2.test <- n.churn2[ind == 2, ]
+
+require(tree)
+
+my.model <- tree(Churn. ~ ., data = churn2.training)
+my.model
+plot(my.model)
+text(my.model, pretty=0)
+
+my.prediction = predict(my.model, churn2.test, type="class")
+table(my.prediction, churn2.test$Churn.)
+
+require(caret)
+require(e1071)
+
+confusionMatrix(table(my.prediction, churn2.test$Churn.))
+
+cv_tree = cv.tree(my.model, FUN = prune.misclass)
+names(cv_tree)
+
+plot(cv_tree$size, cv_tree$dev, type="b")
+
+pruned.model = prune.misclass(my.model, best = 3)
+plot(pruned.model)
+text(pruned.model, pretty = 0)
+
+pruned.prediction = predict(pruned.model, churn2.test, type="class")
+confusionMatrix(table(pruned.prediction, churn2.test$Churn.))
+```
+
+The accuracy of obtained Churn variable from prediction is 86.63% correct. 
+
+

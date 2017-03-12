@@ -1,0 +1,115 @@
+---
+title: "DecisionTrees"
+author: "Mansoor Baba Shaik"
+date: "December 5, 2016"
+output: pdf_document
+---
+
+```{r}
+rm(list = ls())
+
+data(iris)
+
+summary(iris)
+```
+
+```{r}
+#Only numeric datatypes can be normalized. So, choose only those columns from dataframe
+n.function <- function(x){
+  (x-min(x))/(max(x)-min(x))
+}
+
+head(iris$Sepal.Length)
+
+n.sepal = n.function(iris$Sepal.Length)
+
+n.iris<-sapply(iris[1:4], n.function)
+
+head(n.iris)
+
+#combine normalized data with species column(category column)
+n.iris <- data.frame(n.iris, iris$Species)
+```
+
+```{r}
+set.seed(234) #Same sample is generated always, instead og getting random samples each time
+#234 values means start from that number, this can be any random number
+ind = sample(2, nrow(n.iris), replace=T, prob=c(.67,.33))
+ind
+
+#splitting data based on rows irrespective of column datatype
+n.iris.training = n.iris[ind==1,]
+
+n.iris.test = n.iris[ind==2,]
+```
+
+##Building the decision tree
+```{r}
+
+#install.packages('tree')
+
+require('tree')
+
+names(n.iris)
+
+my.model <- tree(iris.Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,
+                 data = n.iris.training)
+
+## or ##
+
+my.model <- tree(iris.Species ~ . , data = n.iris.training)
+
+#my.model
+
+```
+
+#Plotting model
+```{r}
+plot(my.model)
+text(my.model, pretty = 0)
+
+```
+
+#Prediction
+```{r}
+my.prediction <- predict(my.model, n.iris.test, type='class')
+my.prediction
+
+actuals = n.iris.test$iris.Species
+
+results=data.frame(my.prediction, actuals)
+table(results)
+
+ErrorPredictions = which(my.prediction!=actuals)
+results[24,]
+```
+
+```{r}
+require(caret)
+require(e1071)
+
+confusionMatrix(table(results))
+```
+
+#Pruning - adjusting the mapping line to remove errors
+```{r}
+cv_tree = cv.tree(my.model, FUN=prune.misclass)
+names(cv_tree)
+
+plot(cv_tree$size, cv_tree$dev, type="b")
+
+pruned.model = prune.misclass(my.model, best=3)
+
+plot(pruned.model)
+
+text(pruned.model, pretty=0)
+
+pruned.prediction = predict(pruned.model, n.iris.test, type = "class")
+
+pruned.results = data.frame(pruned.prediction, n.iris.test$iris.Species)
+
+confusionMatrix(table(pruned.results))
+
+```
+
+

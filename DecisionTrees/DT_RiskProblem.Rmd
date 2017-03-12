@@ -1,0 +1,139 @@
+---
+title: "DT_RiskProblem"
+author: "Mansoor Baba Shaik"
+date: "December 5, 2016"
+output: pdf_document
+---
+
+```{r, warning=FALSE, message=FALSE}
+rm(list=ls())
+setwd("~/IS665/risk")
+
+classify_risk = read.csv("ClassifyRisk_historical.csv", header=TRUE, sep=",", dec=".")
+
+require(ggplot2)
+
+ggplot(data=classify_risk) + geom_point(aes(x=age, y=income, color=risk)) + theme_light()
+
+summary(classify_risk)
+```
+
+```{r}
+n.function <- function(x){
+  (x-min(x))/(max(x)-min(x))
+}
+
+n.classify_risk<-sapply(classify_risk[, c(2,3,5)], n.function)
+
+head(n.classify_risk)
+
+n.classify_risk <- data.frame(classify_risk[,1], n.classify_risk[,1:2], classify_risk[,4],
+                              n.classify_risk[,3],classify_risk[,6])
+
+colnames(n.classify_risk) <- colnames(classify_risk)
+
+head(n.classify_risk)
+```
+
+```{r}
+set.seed(234)
+
+ind = sample(2, nrow(n.classify_risk), replace=T, prob=c(.67,.33))
+ind
+
+n.classify_risk.training = n.classify_risk[ind==1,]
+
+n.classify_risk.test = n.classify_risk[ind==2,]
+```
+
+##Building the decision tree
+```{r}
+
+#install.packages('tree')
+
+require('tree')
+
+names(n.classify_risk)
+
+my.model <- tree(risk ~ . , data = n.classify_risk.training)
+
+
+```
+
+#Plotting model
+```{r}
+plot(my.model)
+text(my.model, pretty = 0)
+
+```
+
+#Prediction
+```{r}
+my.prediction <- predict(my.model, n.classify_risk.test, type='class')
+my.prediction
+
+actuals = n.classify_risk.test$risk
+
+results=data.frame(my.prediction, actuals)
+table(results)
+
+ErrorPredictions = which(my.prediction!=actuals)
+ErrorPredictions
+```
+
+```{r}
+require(caret)
+require(e1071)
+
+confusionMatrix(table(results))
+```
+
+#Pruning - adjusting the mapping line to remove errors
+```{r}
+cv_tree = cv.tree(my.model, FUN=prune.misclass)
+names(cv_tree)
+
+plot(cv_tree$size, cv_tree$dev, type="b")
+
+pruned.model = prune.misclass(my.model, best=4)
+
+plot(pruned.model)
+
+text(pruned.model, pretty=0)
+
+pruned.prediction = predict(pruned.model, n.classify_risk.test, type = "class")
+
+pruned.results = data.frame(pruned.prediction, n.classify_risk.test$risk)
+
+confusionMatrix(table(pruned.results))
+
+```
+
+#Prediction with test file
+```{r}
+classify_risk_test = read.csv("classifyrisk.csv", header=TRUE, sep=",", dec=".")
+
+n.classify_risk_test<-sapply(classify_risk_test[, c(2,3,5)], n.function)
+
+
+n.classify_risk_test <- data.frame(classify_risk_test[,1],n.classify_risk_test[,1:2],
+                                   classify_risk_test[,4], n.classify_risk_test[,3],
+                                   classify_risk_test[,6])
+
+colnames(n.classify_risk_test) <- colnames(classify_risk_test)
+
+head(n.classify_risk_test)
+
+pruned.prediction = predict(pruned.model, n.classify_risk_test, type = "class")
+
+
+n.classify_risk_test$risk <- pruned.prediction
+
+View(n.classify_risk_test)
+```
+
+
+
+
+
+

@@ -1,0 +1,148 @@
+---
+title: "Exercise_5"
+author: "Mansoor Baba Shaik"
+date: "November 23, 2016"
+output: pdf_document
+---
+
+```{r}
+rm(list=ls())
+
+setwd("~/IS665/Exercise_5/")
+evals = read.csv(file="evals.csv", header=TRUE, sep=",", dec=".", quote="\"")
+```
+
+#1
+```{r}
+hist(evals$score, xlab="score", main="Histogram of score")
+
+skewness <- function(x){
+  return(3*(mean(x)-median(x))/sd(x))
+}
+skewness(evals$score)
+```
+Yes, the distribution of score is skewed and the skewness is towards to the left. This tells us that the students rated courses with more higher scores. This is not what I have expected. I have expected a normal distribution where most professors would be rated near to the average and fewer professors will be rated in the extremes with score 1.0 or 5.0.
+
+#2
+```{r}
+boxplot(bty_avg~age, data=evals,xlab="age", ylab="bty_avg", main="Age vs. Beauty average")
+```
+In the side-by-side boxplot between age and bty_avg, we can see that there is no relationship between the professor's age and their average beauty score. I have expected that the younger professors would have higher average beauty scores. For example, there are some cases like a professor of age 42 has the average beauty score near to 8 which the highest.
+
+#Multiple Linear Regression
+```{r}
+plot (evals $ bty_avg ~ evals $ bty_f1lower)
+cor (evals $ bty_avg , evals $ bty_f1lower)
+
+plot ( evals [, 13 : 19 ])
+
+m_bty_gen <- lm(score ~ bty_avg + gender , data = evals)
+summary(m_bty_gen)
+```
+#3
+```{r}
+m_bty <- lm(score ~ bty_avg, data = evals)
+summary(m_bty)
+summary(m_bty_gen)
+```
+Yes, bty_avg is still a significant predictor of score. 
+There is not much difference in the paramter estimate for bty_avg on the addition of gender to the model. The addition of gender to the model made the model even better as we can see that the adjusted R-squared values increased when gender has been added which might result in better predictions.
+
+#4
+For males: $\hat{score}$ = $\hat{\beta_{0}}$+$\hat{\beta_{1}}$×bty_avg+$\hat{\beta_{2}}$×(1)
+
+For females: $\hat{score}$ = $\hat{\beta_{0}}$+$\hat{\beta_{1}}$×bty_avg+$\hat{\beta_{2}}$×(0)
+
+For two professors who received the same beauty rating, males tend to have a higher course evaluation score than females.
+
+#5
+```{r}
+m_bty_rank <- lm(score ~ bty_avg+rank, data = evals)
+summary(m_bty_rank)
+```
+From the summary, we can see that only two parameter estimates are present for rank though it has three levels. The parameter estimate rankteaching seems to be not considered by the linear model.
+
+#6
+```{r}
+#The below statement is the question given by you in this exercise. 
+#I have not understood what is the question here, as it appears to be a statement.
+```
+The interpretation of the coefficients in multiple regression is slightly different from that of simple
+regression. The estimate for bty_avg reflects how much higher a group of professors is expected to
+score if they have a beauty rating that is one point higher w hile holding all other variables constant.
+In this case, that translates into considering only professors of the same rank with bty_avg scores that are one point apart.
+
+#7
+```{r}
+m_full <- lm(score ~ rank + ethnicity + gender + language + age 
+             + cls_perc_eval + cls_students + cls_level + cls_profs
+             + cls_credits + bty_avg + pic_outfit + pic_color , data = evals)
+
+summary(m_full)
+levels(evals$cls_profs)
+```
+The parameter estimate(coefficient estimate) of cls_profs, shown here as cls_profssingle for one of its level single(considered by model) is the least value compared to other parameter estimates. I would expect cls_profs to not have any association with the professor score.
+
+#8
+```{r}
+which(summary(m_full)$coefficients[, 4] == max(summary(m_full)$coefficients[, 4]))
+plot(score ~ cls_profs, data = evals)
+summary(lm(score ~ cls_profs, data=evals))$adj.r.squared
+```
+Yes, cls_profs has the least association to scores. Also, when seen in the summary of the model you can see that it has very low adjusted R-squared and high p-values which makes it the least preferred.
+
+#9
+```{r}
+summary(m_full)
+```
+The coefficient associated with the ethnicity variable is 0.1234929213
+
+#10
+```{r}
+m_final <- lm(score ~ rank + ethnicity + gender + language + age + 
+                cls_perc_eval + cls_students + cls_level + cls_credits + 
+                bty_avg + pic_outfit + pic_color, data = evals)
+
+summary(m_final)
+```
+Yes, the coefficients and significance of the other explanatory variables slightly changed when cls_profs variable is not considered in the model. Therefore, this is a better model than the previous.
+
+#11
+```{r}
+m_final_backward <- lm(score ~ ethnicity + gender + language + age + cls_perc_eval + 
+                 cls_credits + bty_avg + pic_color, data = evals)
+
+summary(m_final_backward)
+```
+$\hat{score}$ = $\hat{\beta_{0}}$ + $\hat{\beta_{1}}$ × ethinicity_not_minority +        $\hat{\beta_{2}}$ × gender_male + $\hat{\beta_{3}}$ × language_non-english + 
+$\hat{\beta_{4}}$ × age + $\hat{\beta_{5}}$ × cls_perc_eval +
+$\hat{\beta_{6}}$ × cls_credits_one_credit + $\hat{\beta_{7}}$ × bty_avg + 
+$\hat{\beta_{8}}$ × pic_color_color
+
+#12
+```{r}
+par(mfrow=c(2,2))
+qqnorm(m_final_backward$residuals, main="Normal Probability Plot", 
+       xlab="Residual")
+qqline(m_final_backward$residuals)
+
+plot(m_final_backward$residuals ~ m_final_backward$fitted.values, pch=19,
+     main="Versus Fits", xlab="Fitted Value", ylab="Residual", col="turquoise3")
+abline(lm(m_final_backward$residuals ~ m_final_backward$fitted.values), col="red")
+
+hist(m_final_backward$residuals, main="Histogram", xlab="Residual")
+
+plot(m_final_backward$residuals ~ c(1:nrow(evals)), pch=19,
+     main="Versus Order", xlab="Observation Order", ylab="Residual", col="turquoise3")
+abline(lm(m_final_backward$residuals ~ c(1:nrow(evals))), col="red")
+
+```
+In the Normal Probability plot, the residuals of the model is not normal as residual values for the higher and lower quantiles are less than what a normal distribution would predict.
+
+In the Versus Fits plot, we can see that there are some outliers, most of the residual values are close to the fitted values.
+
+In the Histogram, we can see that it looks like some observations in the dataset are skewing normality a bit. If the extreme outliers are excluded then we will get a normal distribution.
+
+In Versus Order plot,we can see that the observations were randomly gathered.
+
+
