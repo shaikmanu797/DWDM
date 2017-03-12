@@ -7,8 +7,6 @@ output: pdf_document
 
 ```{r}
 rm(list=ls())
-
-setwd("~/IS665/Exercise_5/")
 evals = read.csv(file="evals.csv", header=TRUE, sep=",", dec=".", quote="\"")
 ```
 
@@ -49,9 +47,9 @@ Yes, bty_avg is still a significant predictor of score.
 There is not much difference in the paramter estimate for bty_avg on the addition of gender to the model. The addition of gender to the model made the model even better as we can see that the adjusted R-squared values increased when gender has been added which might result in better predictions.
 
 #4
-For males: $\hat{score}$ = $\hat{\beta_{0}}$+$\hat{\beta_{1}}$×bty_avg+$\hat{\beta_{2}}$×(1)
+For males: $\hat{score}$ = $\hat{\beta_{0}}$+$\hat{\beta_{1}}$Ã—bty_avg+$\hat{\beta_{2}}$Ã—(1)
 
-For females: $\hat{score}$ = $\hat{\beta_{0}}$+$\hat{\beta_{1}}$×bty_avg+$\hat{\beta_{2}}$×(0)
+For females: $\hat{score}$ = $\hat{\beta_{0}}$+$\hat{\beta_{1}}$Ã—bty_avg+$\hat{\beta_{2}}$Ã—(0)
 
 For two professors who received the same beauty rating, males tend to have a higher course evaluation score than females.
 
@@ -114,10 +112,10 @@ m_final_backward <- lm(score ~ ethnicity + gender + language + age + cls_perc_ev
 
 summary(m_final_backward)
 ```
-$\hat{score}$ = $\hat{\beta_{0}}$ + $\hat{\beta_{1}}$ × ethinicity_not_minority +        $\hat{\beta_{2}}$ × gender_male + $\hat{\beta_{3}}$ × language_non-english + 
-$\hat{\beta_{4}}$ × age + $\hat{\beta_{5}}$ × cls_perc_eval +
-$\hat{\beta_{6}}$ × cls_credits_one_credit + $\hat{\beta_{7}}$ × bty_avg + 
-$\hat{\beta_{8}}$ × pic_color_color
+$\hat{score}$ = $\hat{\beta_{0}}$ + $\hat{\beta_{1}}$ Ã— ethinicity_not_minority +        $\hat{\beta_{2}}$ Ã— gender_male + $\hat{\beta_{3}}$ Ã— language_non-english + 
+$\hat{\beta_{4}}$ Ã— age + $\hat{\beta_{5}}$ Ã— cls_perc_eval +
+$\hat{\beta_{6}}$ Ã— cls_credits_one_credit + $\hat{\beta_{7}}$ Ã— bty_avg + 
+$\hat{\beta_{8}}$ Ã— pic_color_color
 
 #12
 ```{r}
